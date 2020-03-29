@@ -1,34 +1,44 @@
 import socket
-import time
 import threading
 
 HOST = '127.0.0.1'
 PORT = 5005
-BUFFER_SIZE = 20
+BUFFER_SIZE = 1024
 
-class ServerThread(threading.Thread):
-    def __init__(self):
+def close_connection(sock, addr):
+    sock.close()
+    print(str(addr) + " has been disconnected")
+
+class ConnectionThread(threading.Thread):
+    def __init__(self, conn, addr):
         threading.Thread.__init__(self)
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((HOST, PORT))
-        self.sock.listen(5)
+        self.client_sock = conn
+        self.addr = addr
 
+    def run(self) -> None:
+        message = ""
         while True:
-            conn, addr = self.sock.accept()
-            print("Connnection from: " + str(addr))
-
-            self.run(conn)
-
-    def run(self, conn) -> None:
-        while True:
-            data = conn.recv(BUFFER_SIZE)
-            # ConnectionResetError - client is closing connection but server didn't send the response
+            data = self.client_sock.recv(BUFFER_SIZE)
             if not data:
                 break
-            print("Received data: " + str(data))
-            conn.send(data)
+            message = message.join(str(data))
+            self.client_sock.send(b"Message received")
+            print(str(self.addr) + " said: " + str(data) + "(" + str(self.name) + ")")
+        print(str(self.addr) + " has been disconnected")
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind((HOST, PORT))
 
-        conn.close()
+print("Server started")
+print("Waiting for connection...")
 
-t = ServerThread()
+thread_pool = []
+thread_pool_size = 0
 
+while True:
+    sock.listen(1)
+    conn, addr = sock.accept()
+    newthread = ConnectionThread(conn, addr)
+    newthread.start()
+    print(str(addr) + " is connected")
+    #newthread.join()
+    #conn.close()

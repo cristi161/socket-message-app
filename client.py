@@ -10,6 +10,16 @@ def create_sock():
     return sock
 
 def send_message(sock, message):
-    sock.send(message)
+    sock.sendall(message)
     return sock.recv(BUFFER)
 
+s = create_sock()
+
+while True:
+    message = input()
+    if message == "q":
+        s.close()
+        break
+    print(send_message(s, bytes(message, "utf8")))
+
+#s.close()
