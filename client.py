@@ -24,13 +24,12 @@ class InputThread(threading.Thread):
         self.dest = _dest
 
     def run(self) -> None:
-        while True:
-            print(self.dest + "::", end='')
-            message = input()
-            if message == "q":
-                self.sock.close()  # a break for while is necessary
-                break
-            send_message(self.sock, bytes(self.dest + "::" + message, "utf8"))
+        print(self.dest + "::", end='')
+        message = input()
+        if message == "q":
+            self.sock.close()  # a break for while is necessary
+            return None
+        send_message(self.sock, bytes(self.dest + "::" + message, "utf8"))
 
 
 class RecvThread(threading.Thread):
@@ -39,12 +38,8 @@ class RecvThread(threading.Thread):
         self.sock = sock
 
     def run(self) -> None:
-        try:
-            while True:
-                recv_msg = s.recv(BUFFER).decode("utf-8")
-                print("Received message: " + str(recv_msg))
-        except Exception:
-            pass
+        recv_msg = s.recv(BUFFER).decode("utf-8")
+        print("Received message: " + str(recv_msg))
 
 
 if __name__ == '__main__':
@@ -55,18 +50,19 @@ if __name__ == '__main__':
     clients_nr = len(clients_lst) - 1
 
     if clients_nr == 1:
-        print("Connected users: " + clients_lst[0] + "(you)")
+        print("Connected users: " + clients_lst[0])
     else:
         print("Connected users: " + ', '.join(clients_lst[:-1]))
 
     print("Choose a client from connected users")
     dest = input()  # port of the recipient of the message
 
-    input_t = InputThread(s, dest)
-    recv_t = RecvThread(s)
-    input_t.start()
-    recv_t.start()
+    while True:
+        input_t = InputThread(s, dest)
+        recv_t = RecvThread(s)
+        input_t.start()
+        recv_t.start()
 
-    #input_t.join()
+        input_t.join()
 
-    #s.close()
+    #.close()
