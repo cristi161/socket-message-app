@@ -8,6 +8,7 @@ BUFFER_SIZE = 1024
 connected_clients_ports   = {}
 connected_clients_sockets = {}
 
+
 class ConnectionThread(threading.Thread):
     def __init__(self, conn, addr):
         threading.Thread.__init__(self)
@@ -62,9 +63,11 @@ if __name__ == '__main__':
             connected_clients_ports[addr[1]] = True
             connected_clients_ports[str(addr[1])+"_ws"] = conn
         for key, value in connected_clients_ports.items():
-            if value == True:
-                clients = clients + str(key) + ":"
-
+            if value is True:
+                if addr[1] == key:
+                    clients = clients + str(key) + "(you):"
+                else:
+                    clients = clients + str(key) + ":"
         conn.sendall(bytes(clients, "utf8"))
 
         connected_clients_sockets[int(addr[1])] = conn
