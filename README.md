@@ -2,4 +2,4 @@
 
 server.py and client.py are main files
 
-Live cheat between users
+Live cheat between users.
